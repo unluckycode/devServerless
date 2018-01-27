@@ -9,11 +9,10 @@ using Newtonsoft.Json;
 
 namespace devWar2018
 {
-    public static class DemoFunc
+    public static class DemoFunction
     {
-        [FunctionName("DemoFunc")]
-        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "warsztaty/{id}")]HttpRequest req, 
-            string id, TraceWriter log)
+        [FunctionName("DemoFunction")]
+        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequest req, TraceWriter log)
         {
             log.Info("C# HTTP trigger function processed a request.");
 
