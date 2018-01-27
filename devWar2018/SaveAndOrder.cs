@@ -15,8 +15,8 @@ namespace devWar2018
     public static class SaveAndOrder
     {
         [FunctionName("SaveAndOrder")]
-        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequest req, 
-            [Table("Orders",Connection = "StorageConnection")]ICollector<PhotoOrder> ordersTable,TraceWriter log)
+        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequest req,
+            [Table("Orders", Connection = "StorageConnection")]ICollector<PhotoOrder> ordersTable, TraceWriter log)
         {
             try
             {
@@ -28,8 +28,10 @@ namespace devWar2018
             }
             catch (System.Exception ex)
             {
-                return new BadRequestObjectResult(ex.Message);
+                log.Error("Something went wrong", ex);
+                return new BadRequestObjectResult("Something went wrong");
             }
+
             return (ActionResult)new OkObjectResult($"Order processed");
         }
     }
