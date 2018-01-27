@@ -7,6 +7,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 
 namespace devWar2018
@@ -14,28 +15,30 @@ namespace devWar2018
     public static class SaveAndOrder
     {
         [FunctionName("SaveAndOrder")]
-        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequest req, TraceWriter log)
+        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequest req, 
+            [Table("Orders",Connection = "StorageConnection")]ICollector<PhotoOrder> ordersTable,TraceWriter log)
         {
-            PhotoOrder orderData = null;
             try
             {
                 string requestBody = new StreamReader(req.Body).ReadToEnd();
-                orderData = JsonConvert.DeserializeObject<PhotoOrder>(requestBody);
+                PhotoOrder orderData = JsonConvert.DeserializeObject<PhotoOrder>(requestBody);
+                orderData.PartitionKey = System.DateTime.UtcNow.DayOfYear.ToString();
+                orderData.RowKey = orderData.FileName;
+                ordersTable.Add(orderData);
             }
-            catch (Exception )
+            catch (System.Exception ex)
             {
-                return new BadRequestErrorMessageResult("Invalid data");
+                return new BadRequestObjectResult(ex.Message);
             }
-
-            return (ActionResult) new OkObjectResult($"Order processed");
+            return (ActionResult)new OkObjectResult($"Order processed");
         }
     }
 
-    internal class PhotoOrder
+    public class PhotoOrder : TableEntity
     {
         public string CustomerEmail { get; set; }
         public string FileName { get; set; }
         public int RequiredHeight { get; set; }
-        public int RequiredWidht { get; set; }
+        public int RequiredWidth { get; set; }
     }
 }
